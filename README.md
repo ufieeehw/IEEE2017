@@ -17,7 +17,7 @@ In order to develop software for the robot, you will need to become familiar wit
 
 # Setting Up the Development Environment
 
-IEEE2017 has many dependencies that may be cumbersome to install by hand. A custom image of Ubuntu has been prepared to run in a virtual environment using the install script. The recommended tool to run the image is [VirtualBox](https://www.virtualbox.org/), because that is what it was created in. VMWare is also an option if you have a strong preference to it. Either way, you should simply be able to import the virtual appliance. The OVA file is available [here](http://subjugator.org/extfiles/IEEE2017-VM.ova). The md5sum hash of the file is *ecfb1c60bbe1c6c513d4607b54e00ba6* (please ensure that the md5sum of the file you downloaded matches for security purposes).
+IEEE2017 has many dependencies that may be cumbersome to install by hand. A custom image of Ubuntu has been prepared to run in a virtual environment using the install script. The recommended tool to run the image is [VirtualBox](https://www.virtualbox.org/), because that is what it was created in. VMWare is also an option if you have a strong preference to it. Either way, you should simply be able to import the virtual appliance. The OVA file is available [here](http://subjugator.org/extfiles/IEEE2017-VM.ova). The md5sum hash of the file is **ecfb1c60bbe1c6c513d4607b54e00ba6** (please ensure that the md5sum of the file you downloaded matches for security purposes).
 
 There is also a convenient install script to fetch and install them. This script can be run on Ubuntu if you would prefer to set up your own operating system or already have Ubuntu installed. If the default install location of the catkin workspace (~/ieee_ws) is not ideal, then a different path can be passed to the script with the -c option.
 
@@ -25,7 +25,7 @@ There is also a convenient install script to fetch and install them. This script
 
 The following commands should be run:
 
-    curl -s https://raw.githubusercontent.com/whispercoros/IEEE2017/master/install.sh | sudo bash
+    curl -s https://raw.githubusercontent.com/ufieeehw/IEEE2017/master/install.sh | sudo bash
 
 #### If you have already cloned this repository or done work with the hardware team
 
