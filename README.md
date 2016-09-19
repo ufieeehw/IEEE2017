@@ -25,7 +25,9 @@ There is also a convenient install script to fetch and install them. This script
 
 The following commands should be run:
 
-    curl -s https://raw.githubusercontent.com/ufieeehw/IEEE2017/master/install.sh | sudo bash
+    wget -O install.sh https://raw.githubusercontent.com/ufieeehw/IEEE2017/master/install.sh
+    chmod +x ./install.sh
+    ./install.sh -n
 
 #### If you have already cloned this repository or done work with the hardware team
 
