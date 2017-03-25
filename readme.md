@@ -1,10 +1,8 @@
 # IEEE2017
 
-Email Matthew Langford at matthew.langford95@gmail.com if you are interested in helping out or if you want information about the project.
+Email Arghya Das at argho33@ufl.edu if you are interested in helping out or if you want information about the project.
 
-Join the [Facebook page](https://www.facebook.com/groups/489613054499546/) for important news and meeting time updates.
-
-The [competition rules](http://sites.ieee.org/southeastcon2017/files/2016/04/MMXVII.pdf) contain all of the information that will be needed to design and build our robot.
+The [competition rules](http://sites.ieee.org/southeastcon2017/student-program) contain all of the information that will be needed to design and build our robot.
 
 # Getting involved
 
