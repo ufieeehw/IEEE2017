@@ -22,14 +22,7 @@ __copyright__ = "Copyright 2016, UF IEEE"
 __license__ = "MIT"
 
 
-rospy.init_node("shooter_camera")
-
-
-class Camera():
-	'''
-	An object that streams camera data based on the configurations defined
-	in the index, width, height, and fps ROS parameters.
-	'''
+class Camera(object):
 
 	def __init__(self):
 		self.__index = rospy.get_param("~index", 0)
@@ -37,10 +30,13 @@ class Camera():
 		self.__height = rospy.get_param("~height", 1080)
 		self.__fps = rospy.get_param("~fps", 60)
 
+		# Leverages CVBridge to easily generate Image messages
 		self.__bridge = CvBridge()
 		self.__frame_publisher = rospy.Publisher("/shooter_camera", Image, queue_size=1)
 
 		self.__activate()
+
+		# Reads new frames at the desired framerate
 		rospy.Timer(rospy.Duration(1.0 / self.__fps), self.__get_frame, oneshot=False)
 
 	def __activate(self):
@@ -68,5 +64,6 @@ class Camera():
 
 
 if __name__ == "__main__":
+	rospy.init_node("shooter_camera")
 	shooter_camera = Camera()
 	rospy.spin()
