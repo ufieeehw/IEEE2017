@@ -1,0 +1,10 @@
+<launch>
+	<node pkg="ieee2017_command" type="communication_manager.py" name="communication_manager" output="screen">
+		<param name="serial_port" value="/dev/ttyACM0"/>
+		<param name="baud_rate" value="9600"/>
+		<param name="command_size" value="6"/>
+	</node>
+
+	# Launch perception systems
+	<include file="$(find ieee2017_perception)/launch/camera_startup.launch"/>
+</launch>
