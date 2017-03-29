@@ -17,24 +17,12 @@ In order to develop software for the robot, you will need to become familiar wit
 
 IEEE2017 has many dependencies that may be cumbersome to install by hand. A custom image of Ubuntu has been prepared to run in a virtual environment using the install script. The recommended tool to run the image is [VirtualBox](https://www.virtualbox.org/), because that is what it was created in. VMWare is also an option if you have a strong preference to it. Either way, you should simply be able to import the virtual appliance. The OVA file is available [here](http://subjugator.org/extfiles/IEEE2017-VM.ova). The md5sum hash of the file is **ecfb1c60bbe1c6c513d4607b54e00ba6** (please ensure that the md5sum of the file you downloaded matches for security purposes).
 
-There is also a convenient install script to fetch and install them. This script can be run on Ubuntu if you would prefer to set up your own operating system or already have Ubuntu installed. If the default install location of the catkin workspace (~/ieee_ws) is not ideal, then a different path can be passed to the script with the -c option.
+There is also a convenient install script to fetch and install them. This script can be run on Ubuntu if you would prefer to set up your own operating system or already have Ubuntu installed.
 
-#### If you have never cloned this repository or done work with the hardware team
+The following command will fetch and run the script:
 
-The following commands should be run:
+    sudo apt-get -qq update && sudo apt-get install -qq curl && bash <(curl -s https://raw.githubusercontent.com/ufieeehw/IEEE2017/master/install.sh) 
 
-    wget -O install.sh https://raw.githubusercontent.com/ufieeehw/IEEE2017/master/install.sh
-    chmod +x ./install.sh
-    ./install.sh -n
+The install script is intended to handle *every single thing* that needs to be installed to develop for the robot. If it does not work, something has gone terribly wrong and it needs to be fixed. If you resolve an issue while installing, please fix it in the install script and submit a pull-request with the changes. Otherwise, notify the script's maintainer (currently [Anthony Olive](https://github.com/whispercoros)).
 
-#### If you have already cloned this repository or done work with the hardware team
-
-The following commands should be run:
-
-    ~/ieee_ws/src/IEEE2017/install.sh
-
-Make sure that this is actually the path to the local catkin workspace and install script before running it!
-
-The install script is intended to handle *every single thing* that needs to be installed to develop for the robot. If it does not work, something has gone wrong and it needs to be fixed. If an issue is fixed while installing, please fix the install script and submit a pull-request with the changes.
-
-The install script can accept arguments. For example, `./install.sh -c ~/ieee2017_ws` will generate a catkin workspace with the IEEE2017 repository in it at `~/ieee2017_ws` or use an existing workspace if one exists at that location. It will make all of the files and directories it needs within that workspace. If the script has previously been run, it will not run initial set up tasks that have already been performed unless they need to be changed.
+The script will create all of the files and directories it needs within the selected catkin workspace. If the script has previously been run, it will not run initial set up tasks that have already been performed unless they need to be updated. This means that the script will respect workspaces with git repositories already present in them.

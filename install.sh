@@ -29,73 +29,120 @@ instfail() {
 }
 
 check_host() {
-
-	# Attempts to ping a host to make sure it is reachable
 	HOST="$1"
 
-	HOST_PING=$(ping -c 2 $HOST 2>&1| grep "% packet" | cut -d" " -f 6 | tr -d "%")
-	if ! [ -z "${HOST_PING}" ]; then
+	# Attempts to ping the host to make sure it is reachable
+	HOST_PING=$(ping -c 2 $HOST 2>&1 | grep "% packet" | awk -F'[%]' '{print $1}' | awk -F'[ ]' '{print $NF}')
+	if [ ! -z "${HOST_PING}" ]; then
 
 		# Uses packet loss percentage to determine if the connection is strong
 		if [ $HOST_PING -lt 25 ]; then
 
 			# Will return true if ping was successful and packet loss was below 25%
-			return `true`
-		else
-			echo "There is a weak connection to the host"
+			echo "true"
 		fi
-	else
-		echo "The server was unreachable"
 	fi
-	return `false`
 }
+
+
+#=======================#
+# Configurable Defaults #
+#=======================#
+
+CATKIN_DIR=~/ieee_ws
+BASHRC_FILE=~/.bashrc
 
 
 #======================#
 # Script Configuration #
 #======================#
 
-# Sane installation defaults for no argument cases
-REQUIRED_OS="trusty"
-CATKIN_DIR=~/ieee_ws
+# Set sane defaults for other install parameters
+ENABLE_UDEV_RULES=false
 
-# Retrievs information about the location of the script
-SCRIPT_PATH="`readlink -f ${BASH_SOURCE[0]}`"
-SCRIPT_DIR="`dirname $SCRIPT_PATH`"
+# Prompt the user to enter a catkin workspace to use
+echo "Catkin is the ROS build system and it combines CMake macros and Python scripts."
+echo "The catkin workspace is the directory where all source and build files for the"
+echo "project are stored. Our default is in brackets below, press enter to use it."
+echo -n "What catkin workspace should be used? [$CATKIN_DIR]: " && read RESPONSE
+if [ "$RESPONSE" != "" ]; then
+	CATKIN_DIR=${RESPONSE/\~//home/$USER}
+fi
+echo ""
 
-# Convert script arguments to variables
-while [ "$#" -gt 0 ]; do
-	case $1 in
-		-h) printf "\nUsage: $0\n"
-			printf "\n    [-c] catkin_workspace (Recommend: ~/ieee_ws)\n"
-			printf "\n    example: ./install.sh -c ~/ieee_ws\n"
-			printf "\n"
-			exit 0
-			;;
-		-c) CATKIN_DIR="$2"
-			shift 2
-			;;
-		-?) instwarn "Option $1 is not implemented"
-			exit 1
-			;;
-	esac
-done
+if [ ! -d $CATKIN_DIR/src/IEEE2017 ]; then
+	echo "We use a forking workflow to facilitate code contributions on Github. This means"
+	echo "that each user forks the main repository and has their own copy. In the"
+	echo "repositories that we clone for projects, the main repository will be the"
+	echo "'upstream' remote and your local fork will be the 'origin' remote. You should"
+	echo "specify a fork URI for each repository you plan to push code to; otherwise,"
+	echo "leave the field blank. These can also be set manually using this command:"
+	echo "git remote add <remote_name> <user_fork_url>"
+	echo -n "User fork URI for the mil_common repository: " && read USER_FORK
+	echo ""
+fi
+
+# Warn users about the security risks associated with enabling Udev rules before doing it
+if [ ! -f /etc/udev/rules.d/47-hokuyo.rules ]; then
+	echo "The IEEE robot requires Udev rules to ensure that sensors are always"
+	echo "accessible on the same system path. This is required for the vehicle's"
+	echo "computers, but optional for user computers. Users should only enable the Udev"
+	echo "rules if they need to interface directly with the required sensors. It should"
+	echo "also be noted that installing these may compromise the security of the system."
+	echo -n "Do you want to enable the Udev rules on this system? [y/N] " && read RESPONSE
+	if ([ "$RESPONSE" = "Y" ] || [ "$RESPONSE" = "y" ]); then
+		ENABLE_UDEV_RULES=true
+	fi
+	echo ""
+else
+	ENABLE_UDEV_RULES=true
+fi
 
 
 #==================#
 # Pre-Flight Check #
 #==================#
 
+instlog "Acquiring root privileges"
+
+# Gets the user to enter their password here instead of in the middle of the pre-flight check
+# Purely here for aesthetics and to satisfy OCD
+sudo true
+
 instlog "Starting the pre-flight system check to ensure installation was done properly"
 
-# The lsb-release package is critical to check the OS version
-# It may not be on bare-bones systems, so it is installed here if necessary
+# Check whether or not github.com is reachable
+# This also makes sure that the user is connected to the internet
+if [ "`check_host github.com`" = "true" ]; then
+	NET_CHECK=true
+	echo -n "[ " && instpass && echo -n "] "
+else
+	NET_CHECK=false
+	echo -n "[ " && instfail && echo -n "] "
+fi
+echo "Internet connectivity check"
+
+if !($NET_CHECK); then
+
+	# The script will not allow the user to install without internet
+	instwarn "Terminating installation due to the lack of an internet connection"
+	instwarn "The install script needs to be able to connect to Github and other sites"
+	exit 1
+fi
+
+# Make sure script dependencies are installed quietly on bare bones installations
 sudo apt-get update -qq
-sudo apt-get install -qq lsb-release
+sudo apt-get install -qq lsb-release wget git > /dev/null 2>&1
+
+# Ubuntu 14.04 with ROS Indigo is currently the only supported software stack
+REQUIRED_OS_ID="Ubuntu"
+REQUIRED_OS_CODENAME="trusty"
+REQUIRED_OS_RELEASE="14.04"
+ROS_VERSION="indigo"
 
 # Ensure that the correct OS is installed
-DTETCTED_OS="`lsb_release -sc`"
-if [ $DTETCTED_OS = $REQUIRED_OS ]; then
+DETECTED_OS_CODENAME="`lsb_release -sc`"
+if [ $DETECTED_OS_CODENAME = $REQUIRED_OS_CODENAME ]; then
 	OS_CHECK=true
 	echo -n "[ " && instpass && echo -n "] "
 else
@@ -109,43 +156,24 @@ if [ $USER != "root" ]; then
 	ROOT_CHECK=true
 	echo -n "[ " && instpass && echo -n "] "
 else
-	OS_CHECK=false
+	ROOT_CHECK=false
 	echo -n "[ " && instfail && echo -n "] "
 fi
-echo "Running user check"
-
-# Check whether or not github.com is reachable
-# This also makes sure that the user is connected to the internet
-if (check_host "github.com"); then
-	NET_CHECK=true
-	echo -n "[ " && instpass && echo -n "] "
-else
-	NET_CHECK=false
-	echo -n "[ " && instfail && echo -n "] "
-fi
-echo "Internet connectivity check"
+echo "User permissions check"
 
 if !($OS_CHECK); then
 
 	# The script will not allow the user to install on an unsupported OS
-	instwarn "Terminating installation due to incorrect OS (detected $DTETCTED_OS)"
-	instwarn "This project requires Ubuntu 14.04 (trusty)"
+	instwarn "Terminating installation due to incorrect OS (detected $DETECTED_OS_CODENAME)"
+	instwarn "This project requires $REQUIRED_OS_RELEASE $REQUIRED_OS_RELEASE ($REQUIRED_OS_CODENAME)"
 	exit 1
 fi
 
 if !($ROOT_CHECK); then
 
 	# The script will not allow the user to install as root
-	instwarn "Terminating installation due to forbidden user"
+	instwarn "Terminating installation due to forbidden user account"
 	instwarn "The install script should not be run as root"
-	exit 1
-fi
-
-if !($NET_CHECK); then
-
-	# The script will not allow the user to install without internet
-	instwarn "Terminating installation due to the lack of an internet connection"
-	instwarn "The install script needs to be able to connect to GitHub and other sites"
 	exit 1
 fi
 
@@ -154,39 +182,37 @@ fi
 # Repository and Set Up and Main Stack Installation #
 #===================================================#
 
-# Make sure script dependencies are installed on bare bones installations
-instlog "Installing install script dependencies"
-sudo apt-get install -qq wget curl aptitude git
+# Add software repository for ROS to software sources
+instlog "Adding the ROS PPA to software sources"
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros.list'
+sudo sh -c 'echo "deb-src http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" >> /etc/apt/sources.list.d/ros.list'
+sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
 
-# Add software repositories for ROS and Gazebo
-instlog "Adding ROS and Gazebo PPAs to software sources"
-sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu trusty main\" > /etc/apt/sources.list.d/ros-latest.list"
-sudo sh -c "echo \"deb http://packages.osrfoundation.org/gazebo/ubuntu trusty main\" > /etc/apt/sources.list.d/gazebo-latest.list"
-
-# Get the GPG signing keys for the above repositories
-wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
-sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-key 0xB01FA116
-
-# Add software repository for Git-LFS
+# Add software repository for Git-LFS to software sources
 instlog "Adding the Git-LFS packagecloud repository to software sources"
 curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
 
-# Install ROS and other project dependencies
-instlog "Installing ROS Indigo base packages"
-sudo apt-get update -qq
-sudo apt-get install -qq python-catkin-pkg python-rosdep
-if (env | grep SEMAPHORE | grep --quiet -oe '[^=]*$'); then
-	sudo apt-get install -qq ros-indigo-desktop
-else
-	sudo apt-get install -qq ros-indigo-desktop-full
+# Add software repository for Gazebo to software sources if ROS Indigo is being installed
+if [ "$ROS_VERSION" = "indigo" ]; then
+	instlog "Adding the Gazebo PPA to software sources"
+	sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/gazebo.list'
+	sudo sh -c 'echo "deb-src http://packages.osrfoundation.org/gazebo/ubuntu $(lsb_release -sc) main" >> /etc/apt/sources.list.d/gazebo.list'
+	wget -q http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 fi
 
-# Break the ROS Indigo metapackage and install an updated version of Gazebo
-instlog "Installing the latest version of Gazebo"
-sudo aptitude unmarkauto -q '?reverse-depends(ros-indigo-desktop-full) | ?reverse-recommends(ros-indigo-desktop-full)'
-sudo apt-get purge -qq ros-indigo-gazebo*
-sudo apt-get install -qq gazebo7
-sudo apt-get install -qq ros-indigo-gazebo7-msgs ros-indigo-gazebo7-ros ros-indigo-gazebo7-plugins ros-indigo-gazebo7-ros-control
+# Install ROS and a few ROS dependencies
+instlog "Installing ROS $(tr '[:lower:]' '[:upper:]' <<< ${ROS_VERSION:0:1})${ROS_VERSION:1}"
+sudo apt-get update -qq
+sudo apt-get install -qq ros-$ROS_VERSION-desktop-full
+
+# If ROS Indigo is being installed, break the metapackage and install an updated version of Gazebo
+if [ "$ROS_VERSION" = "indigo" ]; then
+	instlog "Installing the latest version of Gazebo"
+	sudo aptitude unmarkauto -q '?reverse-depends(ros-indigo-desktop-full) | ?reverse-recommends(ros-indigo-desktop-full)'
+	sudo apt-get purge -qq ros-indigo-gazebo*
+	sudo apt-get install -qq gazebo7
+	sudo apt-get install -qq ros-indigo-gazebo7-ros-pkgs
+fi
 
 # Source ROS configurations for bash on this user account
 source /opt/ros/indigo/setup.bash
@@ -211,19 +237,12 @@ rosdep update
 # Set up catkin workspace directory
 if !([ -f $CATKIN_DIR/src/CMakeLists.txt ]); then
 	instlog "Generating catkin workspace at $CATKIN_DIR"
-	mkdir -p "$CATKIN_DIR/src"
-	cd "$CATKIN_DIR/src"
+	mkdir -p $CATKIN_DIR/src
+	cd $CATKIN_DIR/src
 	catkin_init_workspace
-	catkin_make -C "$CATKIN_DIR"
+	catkin_make -C $CATKIN_DIR -B
 else
 	instlog "Using existing catkin workspace at $CATKIN_DIR"
-fi
-
-# Move the cloned git repository to the catkin workspace in semaphore
-if (env | grep SEMAPHORE | grep --quiet -oe '[^=]*$'); then
-	if [ -d ~/IEEE2017 ]; then
-		mv ~/IEEE2017 "$CATKIN_DIR/src"
-	fi
 fi
 
 # Source the workspace's configurations for bash on this user account
@@ -236,10 +255,12 @@ fi
 if !(ls "$CATKIN_DIR/src" | grep --quiet "IEEE2017"); then
 	instlog "Downloading the IEEE2017 repository"
 	cd $CATKIN_DIR/src
-	git clone -q https://github.com/ufieeehw/IEEE2017.git
+	git clone --recursive -q https://github.com/ufieeehw/IEEE2017.git
 	cd $CATKIN_DIR/src/IEEE2017
 	git remote rename origin upstream
-	instlog "Make sure you change your git origin to point to your own fork! (git remote add origin your_forks_url)"
+	if [ ! -z "$USER_FORK" ]; then
+		git remote add origin "$USER_FORK"
+	fi
 fi
 
 
@@ -247,55 +268,49 @@ fi
 # Dependency Installation #
 #=========================#
 
+if ($ENABLE_UDEV_RULES); then
+	instlog "Enabling Udev rules (a reboot is required for this to take full effect)"
+	sudo usermod -a -G dialout "$USER"
+	sudo usermod -a -G video "$USER"
+	sudo wget -q https://raw.githubusercontent.com/ufieeehw/IEEE2017/master/udev/47-hokuyo.rules -O /etc/udev/rules.d/47-hokuyo.rules
+	sudo service udev restart
+fi
+
 instlog "Installing common dependencies from the Ubuntu repositories"
 
-# Utilities for building and package management
-sudo apt-get install -qq cmake binutils-dev python-pip
-
 # Common backend libraries
-sudo apt-get install -qq libboost-all-dev
-sudo apt-get install -qq python-dev python-scipy python-numpy python-serial
+sudo apt-get install -qq python-serial
+sudo apt-get install -qq python-pyopencl
 
-# Visualization and graphical interfaces
-sudo apt-get install -qq python-qt4-dev python-qt4-gl
+# Scientific and technical computing
+sudo apt-get install -qq python-scipy
 
-# Tools
-sudo apt-get install -qq git-lfs sshfs
-sudo apt-get install -qq git-lfs gitk
+# System tools
+sudo apt-get install -qq tmux
+sudo apt-get install -qq htop
+sudo apt-get install -qq sshfs
+
+# Git-LFS for models and other large files
+sudo apt-get install -qq git-lfs
+cd $CATKIN_DIR
 git lfs install --skip-smudge
 
+# Debugging utility
+sudo apt-get install -qq gdb
+
+# Machine Learning
+sudo apt-get install -qq python-sklearn
+
 instlog "Installing common ROS dependencies"
-
-# Hardware drivers
-sudo apt-get install -qq ros-indigo-driver-base
-
-# Cameras
-sudo apt-get install -qq ros-indigo-usb-cam
-sudo apt-get install -qq ros-indigo-camera-info-manager
 
 # Lidar
 sudo apt-get install -qq ros-indigo-hokuyo-node
 
-# Navigation
-sudo apt-get install -qq ros-indigo-robot-localization
 
-# Image compression
-sudo apt-get install -qq ros-indigo-rosbag-image-compressor
-sudo apt-get install -qq ros-indigo-compressed-image-transport
-sudo apt-get install -qq ros-indigo-compressed-depth-image-transport
+#===========================#
+# Catkin Workspace Building #
+#===========================#
 
-
-#==========================#
-# Finalization an Clean Up #
-#==========================#
-
-# Attempt to build the Navigator stack on client machines
-if !(env | grep SEMAPHORE | grep --quiet -oe '[^=]*$'); then
-	instlog "Building the software stack with catkin_make"
-	catkin_make -C "$CATKIN_DIR" -j8
-fi
-
-# Remove the initial install script if it was not in the Navigator repository
-if !(echo "$SCRIPT_DIR" | grep --quiet "src/Navigator"); then
-	rm -f "$SCRIPT_PATH"
-fi
+# Attempt to build the IEEE software stack on client machines
+instlog "Building IEEE software stack with catkin_make"
+catkin_make -C $CATKIN_DIR -B
