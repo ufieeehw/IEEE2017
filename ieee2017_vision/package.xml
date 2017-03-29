@@ -1,11 +1,10 @@
 <?xml version="1.0"?>
 <package>
-  <name>ieee2017_perception</name>
+  <name>ieee2017_vision</name>
   <version>0.0.0</version>
-  <description>The ieee2017_perception package</description>
+  <description>The ieee2017_vision package</description>
 
   <maintainer email="anthony@iris-systems.net">Anthony Olive</maintainer>
-
 
   <license>MIT</license>
 

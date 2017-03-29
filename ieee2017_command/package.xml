@@ -6,7 +6,6 @@
 
   <maintainer email="anthony@iris-systems.net">Anthony Olive</maintainer>
 
-
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>

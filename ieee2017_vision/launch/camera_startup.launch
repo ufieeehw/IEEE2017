@@ -1,5 +1,5 @@
 <launch>
-	<node pkg="ieee2017_perception" type="shooter_camera.py" name="shooter_camera" output="screen">
+	<node pkg="ieee2017_vision" type="shooter_camera.py" name="shooter_camera" output="screen">
 		<param name="index" value="0"/>
 		<param name="width" value="640"/>
 		<param name="heigth" value="480"/>
