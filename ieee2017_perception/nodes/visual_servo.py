@@ -50,7 +50,7 @@ class VisualServo(object):
 		working_image = cv2.cvtColor(self.__image, cv2.COLOR_BGR2GRAY)
 
 		# Shrink the image to reduce processing time
-		resize_width=360
+		resize_width=320
 		origin_size = (working_image.shape[1], working_image.shape[0])
 		image_aspect_ratio = float(origin_size[0]) / origin_size[1]
 		working_size = (resize_width, int(resize_width / image_aspect_ratio))
