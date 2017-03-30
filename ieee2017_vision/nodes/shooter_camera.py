@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 
 '''
 Shooter Camera: This program acts as a simple frame buffer and broadcaster

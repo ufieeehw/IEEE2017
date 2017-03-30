@@ -5,6 +5,6 @@
 		<param name="command_size" value="6"/>
 	</node>
 
-	# Launch vision systems
-	<include file="$(find ieee2017_vision)/launch/camera_startup.launch"/>
+	# Launch subsystems in other packages
+	<include file="$(find ieee2017_vision)/launch/vision.launch"/>
 </launch>

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 
 '''
 Visual Servo: Uses information from the shooter camera to line the shooter up

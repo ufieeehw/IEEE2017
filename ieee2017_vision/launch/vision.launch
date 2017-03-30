@@ -5,4 +5,5 @@
 		<param name="heigth" value="480"/>
 		<param name="fps" value="15"/>
 	</node>
+	<node pkg="ieee2017_vision" type="visual_servo.py" name="visual_servo" output="screen"/>
 </launch>

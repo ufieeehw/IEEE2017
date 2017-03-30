@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 
 '''
 Communication Manager: This program handles communications with th Arduino
