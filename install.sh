@@ -306,6 +306,9 @@ instlog "Installing common ROS dependencies"
 # Lidar
 sudo apt-get install -qq ros-indigo-hokuyo-node
 
+# State estimation
+sudo apt-get install -qq ros-indigo-robot-localization
+
 
 #===========================#
 # Catkin Workspace Building #
