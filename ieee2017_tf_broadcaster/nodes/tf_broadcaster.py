@@ -52,9 +52,9 @@ class TFBroadcaster():
 			tf.transformations.quaternion_from_euler(0, 0, 0),
 			rospy.Time.now(), "base_link", "odom")
 
-		# Transformations from base_link to each lidar
+		# Transformations from base_link to each LiDAR
 		# All frames share a planar center, but the lidar_fused frame is lower
-		# Each lidar is rotated such that the beam is emitted away from the vehicle
+		# Each LiDAR is rotated such that the beam is emitted away from the vehicle
 		self.tf_broad.sendTransform((0, 0.125368, -0.0775),
 			tf.transformations.quaternion_from_euler(0, 3.14159, -1.590796),
 			rospy.Time.now(), "lidar_left", "base_link")
@@ -68,7 +68,7 @@ class TFBroadcaster():
 			tf.transformations.quaternion_from_euler(3.14159, 0, 3.14159),
 			rospy.Time.now(), "lidar_back", "base_link")
 
-		# Transformations from base_link to the fused lidar pointcloud
+		# Transformations from base_link to the fused LiDAR pointcloud
 		# Both frames share a planar center, but the lidar_fused frame is lower
 		self.tf_broad.sendTransform((0,0,-0.0775),
 			tf.transformations.quaternion_from_euler(0,0,0),
