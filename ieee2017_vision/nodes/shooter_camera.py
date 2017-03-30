@@ -18,7 +18,7 @@ from sensor_msgs.msg import Image
 __author__ = "Anthony Olive"
 __maintainer__ = "Anthony Olive"
 __email__ = "anthony@iris-systems.net"
-__copyright__ = "Copyright 2016, UF IEEE"
+__copyright__ = "Copyright 2017, UF IEEE"
 __license__ = "MIT"
 
 
@@ -26,9 +26,9 @@ class Camera(object):
 
 	def __init__(self):
 		self.__index = rospy.get_param("~index", 0)
-		self.__width = rospy.get_param("~width", 1920)
-		self.__height = rospy.get_param("~height", 1080)
-		self.__fps = rospy.get_param("~fps", 60)
+		self.__width = rospy.get_param("~width", 640)
+		self.__height = rospy.get_param("~height", 480)
+		self.__fps = rospy.get_param("~fps", 15)
 
 		# Leverages CVBridge to easily generate Image messages
 		self.__bridge = CvBridge()
@@ -37,7 +37,7 @@ class Camera(object):
 		self.__activate()
 
 		# Reads new frames at the desired framerate
-		rospy.Timer(rospy.Duration(1.0 / self.__fps), self.__get_frame, oneshot=False)
+		rospy.Timer(rospy.Rate(self.__fps), self.__get_frame, oneshot=False)
 
 	def __activate(self):
 		'''

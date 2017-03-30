@@ -18,7 +18,7 @@ from sensor_msgs.msg import Image
 __author__ = "Anthony Olive"
 __maintainer__ = "Anthony Olive"
 __email__ = "anthony@iris-systems.net"
-__copyright__ = "Copyright 2016, UF IEEE"
+__copyright__ = "Copyright 2017, UF IEEE"
 __license__ = "MIT"
 
 
