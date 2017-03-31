@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>ieee2017_command</name>
+  <name>ieee2017_arduino_connector</name>
   <version>0.0.0</version>
-  <description>The ieee2017_command package</description>
+  <description>The ieee2017_arduino_connector package</description>
 
   <maintainer email="anthony@iris-systems.net">Anthony Olive</maintainer>
 
