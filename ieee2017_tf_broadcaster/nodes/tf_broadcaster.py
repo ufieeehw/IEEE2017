@@ -30,8 +30,8 @@ class TFBroadcaster():
 		self.__odom_subscriber = rospy.Subscriber("/odom", Odometry, self.__update_odom, queue_size=2)
 
 		# Publish the transformations at a frequency specified by the rate parameter
-		self.__publishing_rate = rospy.get_param("~publishing_rate", 30)
-		rospy.Timer(rospy.Rate(self.__publishing_rate), self.__publish_static, oneshot=False)
+		publishing_rate = rospy.get_param("~publishing_rate", 30)
+		rospy.Timer(rospy.Duration(1.0 / publishing_rate), self.__publish_static, oneshot=False)
 
 	def __update_odom(self, msg):
 		msg = msg.pose.pose
@@ -39,7 +39,7 @@ class TFBroadcaster():
 			(msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w),
 			rospy.Time.now(), "odom", "map")
 
-	def __publish_static(self):
+	def __publish_static(self, event):
 		'''
 		Transformations between coordinate frames that are at fixed
 		positions relative to each other.
