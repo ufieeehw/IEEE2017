@@ -48,34 +48,34 @@ class TFBroadcaster():
 		# Transformation from odom to base_link
 		# The origin of the base_link frame is at the center of the top plate
 		# This provides planar coordinates of base_link on the map plus it's elevation
-		self.tf_broad.sendTransform((0, 0, 0.119),
+		self.__broadcaster.sendTransform((0, 0, 0.119),
 			tf.transformations.quaternion_from_euler(0, 0, 0),
 			rospy.Time.now(), "base_link", "odom")
 
 		# Transformations from base_link to each LiDAR
 		# All frames share a planar center, but the lidar_fused frame is lower
 		# Each LiDAR is rotated such that the beam is emitted away from the vehicle
-		self.tf_broad.sendTransform((0, 0.125368, -0.0775),
+		self.__broadcaster.sendTransform((0, 0.125368, -0.0775),
 			tf.transformations.quaternion_from_euler(0, 3.14159, -1.590796),
 			rospy.Time.now(), "lidar_left", "base_link")
-		self.tf_broad.sendTransform((0.1, 0, -0.0775),
+		self.__broadcaster.sendTransform((0.1, 0, -0.0775),
 			tf.transformations.quaternion_from_euler(3.14159, 0, 0),
 			rospy.Time.now(), "lidar_front", "base_link")
-		self.tf_broad.sendTransform((0, -0.125368, -0.0775),
+		self.__broadcaster.sendTransform((0, -0.125368, -0.0775),
 			tf.transformations.quaternion_from_euler(0, 3.14159, 1.570796),
 			rospy.Time.now(), "lidar_right", "base_link")
-		self.tf_broad.sendTransform((-0.1, 0, -0.0775),
+		self.__broadcaster.sendTransform((-0.1, 0, -0.0775),
 			tf.transformations.quaternion_from_euler(3.14159, 0, 3.14159),
 			rospy.Time.now(), "lidar_back", "base_link")
 
 		# Transformations from base_link to the fused LiDAR pointcloud
 		# Both frames share a planar center, but the lidar_fused frame is lower
-		self.tf_broad.sendTransform((0,0,-0.0775),
+		self.__broadcaster.sendTransform((0,0,-0.0775),
 			tf.transformations.quaternion_from_euler(0,0,0),
 			rospy.Time.now(), "lidar_fused", "base_link")
 
 		# Transformations from base_link to the IMU
-		#self.tf_broad.sendTransform((0,0,0),
+		#self.__broadcaster.sendTransform((0,0,0),
 		#	tf.transformations.quaternion_from_euler(0,0,0),
 		#	rospy.Time.now(), "imu", "base_link")
 

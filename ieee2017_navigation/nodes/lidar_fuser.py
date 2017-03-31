@@ -17,7 +17,7 @@ import pyopencl as cl
 import rospy
 import tf
 import message_filters
-from std_msgs.msg import Header, Int8, Bool
+from std_msgs.msg import Header, Bool
 from geometry_msgs.msg import Point32
 from sensor_msgs.msg import LaserScan, PointCloud
 
@@ -32,8 +32,6 @@ __license__ = "MIT"
 class LaserFuser():
 
 	def __init__(self):
-		self.map_version_pub = rospy.Publisher('/settings/map_version', Int8, queue_size=3)
-		self.start_pub = rospy.Publisher('/settings/start_command', Bool, queue_size=3)
 		self.scan_pub = rospy.Publisher('/robot/navigation/lidar/scan_fused', LaserScan, queue_size=3)
 		#self.scan_pc_pub = rospy.Publisher('/robot/navigation/lidar/scan_fused_pc', PointCloud, queue_size=3)
 		rospy.init_node('laser_fuser')
@@ -83,9 +81,7 @@ class LaserFuser():
 
 		# For checking for gestures
 		self.left,self.front,self.right,self.back = False, False, False, False
-		self.started = False
 		self.time_checker = time.time()
-		self.listen_for_start()
 
 		rospy.spin()
 
@@ -143,42 +139,6 @@ class LaserFuser():
 		self.fused_scan.header.stamp = self.scans[1].header.stamp
 		self.fused_scan.ranges = self.cart_to_polar()
 		self.scan_pub.publish(self.fused_scan)
-
-	def listen_for_start(self):
-		'''
-		Check for the start gesture (covering front amd back lidars), then use the left and right lidars to determine the map layout.
-		'''
-		# Publish start command.
-		r = rospy.Rate(10)
-		while not self.started and not rospy.is_shutdown():
-			self.check_start_command()
-			r.sleep()
-
-		time.sleep(.5)
-		# Publish map version
-		self.check_map_version()
-
-	def check_map_version(self):
-		# Take the average of the left and right sides, removing any NaN's or Inf's
-		l_scan = np.array(self.scans[0].ranges)
-		r_scan = np.array(self.scans[2].ranges)
-
-		if np.nanmean(l_scan[np.isfinite(l_scan)]) < np.nanmean(r_scan[np.isfinite(r_scan)]):
-			self.map_version_pub.publish(Int8(data=1))
-		else:
-			self.map_version_pub.publish(Int8(data=2))
-
-	def check_start_command(self):
-		f_scan = np.array(self.scans[1].ranges)
-		b_scan = np.array(self.scans[3].ranges)
-
-		if np.nanmean(f_scan[np.isfinite(f_scan)]) < .2 and np.nanmean(b_scan[np.isfinite(b_scan)]) < .2:
-			print time.time() - self.time_checker
-			if time.time() - self.time_checker > 2:
-				self.start_pub.publish(Bool(data=True))
-				self.started = True
-		else:
-			self.time_checker = time.time()
 
 	def polar_to_cart(self,r_theta,translation,frame):
 		# Convert (r,theta) into (x,y)
