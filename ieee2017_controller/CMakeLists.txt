@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ieee2016_controller)
+project(ieee2017_controller)
 
 find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
   rospy
   std_msgs
+  geometry_msgs
 )
 
 catkin_package()
