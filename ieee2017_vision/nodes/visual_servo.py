@@ -13,6 +13,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 import rospy
 from sensor_msgs.msg import Image
+from ieee2017_msgs.msg import ShooterControl
 
 
 __author__ = "Anthony Olive"
@@ -27,10 +28,30 @@ class VisualServo(object):
 	def __init__(self):
 		self.__image = None
 		self.__center = None
+		self.__darts_in_clip = [ShooterControl.dart_1, ShooterControl.dart_2, ShooterControl.dart_3]
+
+		self.__shooter_publisher = rospy.Publisher("/shooter", ShooterControl, queue_size=1)
 
 		# Leverages CVBridge to easily generate Image messages
 		self.__bridge = CvBridge()
  		self.__camera_subscriber = rospy.Subscriber("/shooter_camera", Image, self.__cache_image)
+
+		# Wait for an image to be recieved from the camera
+		while (self.__image is None) and (not rospy.is_shutdown()):
+			rospy.logwarn("Waiting for images from the shooter camera")
+			rospy.sleep(1)
+
+		rospy.sleep(30)
+
+		# Wait for the center of the target to be detected
+		while (self.__center is None):
+			self.__average_centers(20)
+
+		# Fire all three darts
+		rospy.sleep(6)
+		self.__center_shooter()
+		#self.__shooter_aim()
+		self.__shooter_fire(3)
 
 	def __cache_image(self, msg):
 		'''
@@ -63,6 +84,9 @@ class VisualServo(object):
 		# Use Otsu's method to threshold the image
 		working_image = cv2.threshold(working_image, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
 
+		largest_contour = None
+		largest_contour_area = 0
+
 		# Iterate over contours in the image
 		contours = cv2.findContours(working_image.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
 		for contour in contours:
@@ -77,13 +101,18 @@ class VisualServo(object):
 				# Use the bounding box to compute the shape's aspect ratio
 				x, y, width, height = cv2.boundingRect(approximation)
 				contour_aspect_ratio = width / float(height)
- 
-				# The aspect ratio of a square should be close to 1
-				if (contour_aspect_ratio >= 0.95 and contour_aspect_ratio <= 1.05):
-					moments = cv2.moments(contour)
-					center_x = int((moments["m10"] / moments["m00"]) * scaling_ratio)
-					center_y = int((moments["m01"] / moments["m00"]) * scaling_ratio)
-					self.__center=(center_x, center_y)
+
+				if ((width * height) > largest_contour_area):
+					
+					# The aspect ratio of a square should be close to 1
+					if (contour_aspect_ratio >= 0.95 and contour_aspect_ratio <= 1.05):
+						largest_contour = contour
+
+		if (largest_contour is not None):
+			moments = cv2.moments(largest_contour)
+			center_x = int((moments["m10"] / moments["m00"]) * scaling_ratio)
+			center_y = int((moments["m01"] / moments["m00"]) * scaling_ratio)
+			self.__center=(center_x, center_y)
 
 	def __average_centers(self, averaging_number):
 		centers = [0, 0]
@@ -98,6 +127,60 @@ class VisualServo(object):
 
 		if (averaging_number > 0):
 			self.__center = (centers[0] / averaging_number, centers[1] / averaging_number)
+
+	def __center_shooter(self):
+		'''
+		Used to bring the shooter back to it's center position with
+		sane defauts
+		'''
+		self.__shooter_command = ShooterCommand
+		self.__shooter_command.pan_angle = ShooterControl.pan_center
+		self.__shooter_command.tilt_angle = ShooterControl.tilt_center
+		self.__shooter_command.dart = ShooterControl.dart_1
+		self.__shooter_command.flywheels = False
+		self.__shooter_command.fire = False
+		self.__shooter_publisher.publish(self.__shooter_command)
+
+	def __shooter_aim(self):
+		'''
+		Aims the shooter based on the detected coordinates of the
+		target's center point.
+		'''
+		self.__shooter_command.pan = self.__center(0)
+		self.__shooter_command.tilt = self.__center(1)
+		self.__shooter_publisher.publish(self.__shooter_command)
+		rospy.sleep(2)
+
+	def __shooter_fire(self, darts_to_fire):
+		'''
+		Aims and fires the shooter based on the detected center of the
+		target.
+		'''
+		for firing_count in darts_to_fire:
+
+			# Will only fire if there are darts left in the clip
+			if (len(self.__darts_in_clip) > 0):
+
+				# Spin up the flywheels
+				self.__shooter_command.flywheels = True
+				self.__shooter_publisher.publish(self.__shooter_command)
+
+				# Increment the clip
+				dart_to_fire = self.__darts_in_clip.pop()
+				self.__shooter_command.dart = dart_to_fire
+				self.__shooter_publisher.publish(self.__shooter_command)
+				rospy.sleep(3)
+
+				# Fire the shooter
+				self.__shooter_command.fire = True
+				self.__shooter_publisher.publish(self.__shooter_command)
+				rospy.sleep(1)
+				self.__shooter_command.fire = False
+				self.__shooter_publisher.publish(self.__shooter_command)
+
+				# Spin down the flywheels
+				self.__shooter_command.flywheels = False
+				self.__shooter_publisher.publish(self.__shooter_command)
 
 
 if __name__ == "__main__":
