@@ -14,6 +14,7 @@ add_message_files(
   FILES
   Mecanum.msg
   StartNavigation.msg
+  ShooterControl.msg
 )
 
 add_service_files(
