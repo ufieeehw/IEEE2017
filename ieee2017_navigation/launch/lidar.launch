@@ -1,0 +1,32 @@
+<launch>
+	<group ns="lidar">
+		<node name="hokuyo_left" pkg="hokuyo_node" type="hokuyo_node">
+			<param name="port" type="string" value="/dev/sensors/hokuyo_H1005181"/>
+			<remap from="scan" to="/navigation/lidar/lidar_left"/>
+			<param name="frame_id" type="string" value="lidar_left"/>
+		</node>
+		<node name="hokuyo_front" pkg="hokuyo_node" type="hokuyo_node">
+			<param name="port" type="string" value="/dev/sensors/hokuyo_H1009001"/>
+			<remap from="scan" to="/navigation/lidar/lidar_front"/>
+			<param name="frame_id" type="string" value="lidar_front"/>
+		</node>
+		<node name="hokuyo_right" pkg="hokuyo_node" type="hokuyo_node">
+			<param name="port" type="string" value="/dev/sensors/hokuyo_H1009061"/>
+			<remap from="scan" to="/navigation/lidar/lidar_right"/>
+			<param name="frame_id" type="string" value="lidar_right"/>
+		</node>
+		<node name="hokuyo_back" pkg="hokuyo_node" type="hokuyo_node">
+			<param name="port" type="string" value="/dev/sensors/hokuyo_H1009056"/>
+			<remap from="scan" to="/navigation/lidar/lidar_back"/>
+			<param name="frame_id" type="string" value="lidar_back"/>
+		</node>
+
+		<node pkg="ieee2017_navigation" type="lidar_fuser.py" name="lidar_fuser" output="screen">
+			<param name="is_enabled/lidar_left" value="True"/>
+			<param name="is_enabled/lidar_front" value="True"/>
+			<param name="is_enabled/lidar_right" value="False"/>
+			<param name="is_enabled/lidar_back" value="False"/>
+			<param name="publishing_rate" value="10"/>
+		</node>
+	</group>
+</launch>
