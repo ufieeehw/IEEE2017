@@ -2,7 +2,9 @@
 
 Email Arghya Das at argho33@ufl.edu if you are interested in helping out or if you want information about the project.
 
-The [competition rules](http://sites.ieee.org/southeastcon2017/student-program) contain all of the information that will be needed to design and build our robot.
+The [competition rules](http://sites.ieee.org/southeastcon2017/student-program/student-hardware-competition) contain all of the information that will be needed to design and build our robot.
+
+The software for this project is heavily based on the software from the [previous year's software](https://github.com/ufieeehw/IEEE2016) due to the fact that the mechanical and electrical platforms were very similar. Important files from last year were [merged](https://stackoverflow.com/questions/19954485/extract-multiple-directories-using-git-filter-branch) into this repository and then modified to work with the new parts of the platform. See the [final pull request](https://github.com/ufieeehw/IEEE2017/pull/3) for a breakdown of what worked and what did not.
 
 # Getting involved
 
@@ -15,13 +17,11 @@ In order to develop software for the robot, you will need to become familiar wit
 
 # Setting Up the Development Environment
 
-IEEE2017 has many dependencies that may be cumbersome to install by hand. A custom image of Ubuntu has been prepared to run in a virtual environment using the install script. The recommended tool to run the image is [VirtualBox](https://www.virtualbox.org/), because that is what it was created in. VMWare is also an option if you have a strong preference to it. Either way, you should simply be able to import the virtual appliance. The OVA file is available [here](http://subjugator.org/extfiles/IEEE2017-VM.ova). The md5sum hash of the file is **ecfb1c60bbe1c6c513d4607b54e00ba6** (please ensure that the md5sum of the file you downloaded matches for security purposes).
-
-There is also a convenient install script to fetch and install them. This script can be run on Ubuntu if you would prefer to set up your own operating system or already have Ubuntu installed.
+IEEE2017 has many dependencies that may be cumbersome to install by hand. There is a convenient install script to fetch and install them automatically. This script must be run on an Ubuntu installation either on a physical machine or in a virtual machine.
 
 The following command will fetch and run the script:
 
-    sudo apt-get -qq update && sudo apt-get install -qq curl && bash <(curl -s https://raw.githubusercontent.com/ufieeehw/IEEE2017/master/install.sh) 
+    sudo apt-get -qq update && sudo apt-get install -qq curl && bash <(curl -s https://raw.githubusercontent.com/ufieeehw/IEEE2017/master/install.sh)
 
 The install script is intended to handle *every single thing* that needs to be installed to develop for the robot. If it does not work, something has gone terribly wrong and it needs to be fixed. If you resolve an issue while installing, please fix it in the install script and submit a pull-request with the changes. Otherwise, notify the script's maintainer (currently [Anthony Olive](https://github.com/whispercoros)).
 
